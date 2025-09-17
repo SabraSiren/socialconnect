@@ -1,0 +1,68 @@
+.postForm {
+    margin-bottom: 1.5rem;
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+}
+
+.cardContent {
+    padding: 1.5rem;
+}
+
+.postInputContainer {
+    display: flex;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.postInput {
+    flex: 1;
+    resize: vertical;
+    min-height: 80px;
+    padding: 0.75rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.375rem;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    background: white;
+    color: #111827;
+    outline: none;
+    transition: border-color 0.2s ease;
+}
+
+.postInput:focus {
+    border-color: #10b981;
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+}
+
+.postInput::placeholder {
+    color: #9ca3af;
+}
+
+.postActions {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.postButton {
+    background: #10b981;
+    color: white;
+    border: none;
+    border-radius: 0.375rem;
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.postButton:hover:not(:disabled) {
+    background: #059669;
+}
+
+.postButton:disabled {
+    background: #d1d5db;
+    color: #9ca3af;
+    cursor: not-allowed;
+}
