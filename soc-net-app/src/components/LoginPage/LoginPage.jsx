@@ -1,6 +1,7 @@
 import styles from "./LoginPage.module.css";
+import commonStyles from "../../App.module.css";
 import {useContext, useState} from "react";
-import {AuthContext} from "../context/AuthContext";
+import {AuthContext} from "../../context/AuthContext";
 
 
 const LoginPage = () => {
@@ -18,14 +19,14 @@ const LoginPage = () => {
 
 
     return (
-        <div className={styles.container}>
+        <div className={commonStyles.pageContainer}>
             <div className={styles.authCard}>
                 <div className={styles.card}>
                     <div className={styles.cardHeader}>
                         <h1 className={styles.title}>Welcome to SocialConnect</h1>
                         <p className={styles.description}>Connect with friends and share your moments</p>
                     </div>
-                    <div className={styles.cardContent}>
+                    <div className={commonStyles.cardContent}>
                         <form onSubmit={login} className={styles.form}>
                             <div className={styles.formFields}>
                                 <div className={styles.field}>

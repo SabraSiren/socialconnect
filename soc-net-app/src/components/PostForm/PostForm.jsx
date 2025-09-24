@@ -1,25 +1,28 @@
-import React from "react";
+import React, {useState} from "react";
 import styles from "./PostForm.module.css";
-import {useState} from "react";
+import commonStyles from "../../App.module.css";
+
 
 
 const PostForm = ({onPostSubmit}) => {
     const [newPost, setNewPost] = useState("");
 
 
-    const handleSubmit = (e) => {
+    const addNewPost = (e) => {
         e.preventDefault();
         if (!newPost.trim()) return
 
-        onPostSubmit(newPost)
+        if (onPostSubmit) {
+            onPostSubmit(newPost)
+        }
         setNewPost("")
     }
 
 
     return (
         <div className={styles.postForm}>
-            <div className={styles.cardContent}>
-                <form onSubmit={handleSubmit}>
+            <div className={commonStyles.cardContent}>
+                <form onSubmit={addNewPost}>
                     <div className={styles.postInputContainer}>
                         <textarea
                             placeholder="What's on your mind?"
@@ -30,7 +33,7 @@ const PostForm = ({onPostSubmit}) => {
                         />
                     </div>
                     <div className={styles.postActions}>
-                        <button type='submit' disabled={!newPost.trim()} className={styles.postButton}>
+                        <button type='submit'  className={styles.postButton}>
                             Post
                         </button>
                     </div>

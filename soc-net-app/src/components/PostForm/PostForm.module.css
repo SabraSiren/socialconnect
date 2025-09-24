@@ -1,14 +1,8 @@
 .postForm {
-    margin-bottom: 1.5rem;
-    background: white;
-    border: 1px solid #e5e7eb;
-    border-radius: 0.5rem;
-    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+    /* Стили карточки перенесены в родительский компонент */
 }
 
-.cardContent {
-    padding: 1.5rem;
-}
+/* Стили перенесены в App.module.css */
 
 .postInputContainer {
     display: flex;
@@ -32,8 +26,8 @@
 }
 
 .postInput:focus {
-    border-color: #10b981;
-    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+    border-color: #45882a;
+    box-shadow: 0 0 0 3px rgba(69, 136, 42, 0.1);
 }
 
 .postInput::placeholder {
@@ -46,23 +40,17 @@
 }
 
 .postButton {
-    background: #10b981;
+    background: #45882a;
     color: white;
     border: none;
     border-radius: 0.375rem;
     padding: 0.5rem 1rem;
     font-size: 0.875rem;
     font-weight: 500;
-    cursor: pointer;
     transition: background-color 0.2s ease;
 }
 
-.postButton:hover:not(:disabled) {
-    background: #059669;
+.postButton:hover {
+    cursor: pointer;
 }
 
-.postButton:disabled {
-    background: #d1d5db;
-    color: #9ca3af;
-    cursor: not-allowed;
-}

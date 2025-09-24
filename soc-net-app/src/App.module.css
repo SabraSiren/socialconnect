@@ -1,3 +1,4 @@
+/* Общие стили контейнеров */
 .container {
     min-height: 100vh;
     background-color: rgb(var(--background));
@@ -6,8 +7,40 @@
     padding: 1rem;
 }
 
+.pageContainer {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+    padding: 1rem;
+}
+
 .mainContent {
     width: 100%;
+}
+
+/* Общие стили карточек */
+.cardContent {
+    padding: 1.5rem;
+}
+
+.cardContentCompact {
+    padding: 0 1.5rem 1.5rem 1.5rem;
+}
+
+.profileCard {
+    margin-bottom: 1.5rem;
+    background: white;
+    border: 1px solid #45882a;
+    border-radius: 0.5rem;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+}
+
+.divider {
+    height: 1px;
+    background: #e5e7eb;
+    margin: 0 1.5rem;
 }
 
 @media (max-width: 768px) {
