@@ -3,28 +3,54 @@ import UserProfile from "../UserProfile/UserProfile";
 import PostForm from "../PostForm/PostForm";
 import Posts from "../Posts/Posts";
 import styles from "../../App.module.css";
-
+import {useAuth} from "../../context/AuthContext";
+import {useNavigate} from "react-router-dom";
 
 const ProfilePage = () => {
-    const [postsCount, setPostsCount] = useState(0);
-    const [newPostContent, setNewPostContent] = useState("");
+    const {user, logout} = useAuth();
+    const navigate = useNavigate();
 
-    const handlePostSubmit = (content) => {
-        setNewPostContent(content);
+    const [refreshKey, setRefreshKey] = useState(0);
+    const [postCount, setPostCount] = useState(0);
+
+    // Триггер для перезагрузки списка постов
+    const bumpRefresh = () => setRefreshKey(k => k + 1);
+
+    const handlePostCreated = () => {
+        bumpRefresh();
     };
+
+    const handlePostDeleted = () => {
+        bumpRefresh();
+    };
+
+    const handlePostUpdated = () => bumpRefresh();
+
+    const handleCountChange = (count) => setPostCount(count ?? 0);
+
+    const handleLogout = async () => {
+        try {
+            await logout();
+            navigate('/login');
+        } catch (err) {
+            console.error('Ошибка при выходе:', err);
+        }
+    };
+    console.log('ProfilePage user:', user);
 
     return (
         <div className={styles.container}>
             <div className={styles.mainContent}>
                 <div className={styles.profileCard}>
-                    <UserProfile postsCount={postsCount}/>
+                    <UserProfile user={user} postCount={postCount} onLogout={handleLogout}/>
                     <div className={styles.divider}></div>
-                    <PostForm onPostSubmit={handlePostSubmit} />
+                    <PostForm onCreate={handlePostCreated}/>
                 </div>
-                <Posts 
-                    onPostsCountChange={setPostsCount} 
-                    newPostContent={newPostContent}
-                    onNewPostSubmitted={() => setNewPostContent("")}
+                <Posts
+                    refreshKey={refreshKey}
+                    onPostDeleted={handlePostDeleted}
+                    onPostUpdated={handlePostUpdated}
+                    onCountChange={handleCountChange}
                 />
             </div>
         </div>

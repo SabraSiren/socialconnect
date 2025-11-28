@@ -5,38 +5,68 @@ import styles from "./Post.module.css"
 import commonStyles from "../../App.module.css"
 
 
-const Post = ({post, onLike, onDelete}) => {
+const Post = ({post = {}, onLike, onDelete}) => {
+    const {
+        id = null,
+        content = "",
+        likes = 0,
+        timestamp = null,
+        liked_by_user = false
+    } = post || {};
+
+    const handleDelete = (e) => {
+        e?.stopPropagation?.();
+        if (typeof onDelete === "function" && id != null) {
+            onDelete(id);
+        }
+    };
+
+    const handleLike = (e) => {
+        e?.stopPropagation?.();
+        if (typeof onLike === "function" && id != null) {
+            onLike(id);
+        }
+    };
+
+    const formattedTime = (() => {
+        if (!timestamp) return "";
+        const d = new Date(timestamp);
+        return isNaN(d.getTime()) ? String(timestamp) : d.toLocaleString();
+    })();
+
     return (
         <div className={styles.postCard}>
             <div className={styles.postHeader}>
                 <div className={styles.postTime}>
-                    <span>{post.timestamp}</span>
-                    {onDelete && (
-                        <button 
+                    <span>{formattedTime}</span>
+
+                    {typeof onDelete === "function" && id != null && (
+                        <button
                             className={styles.deleteButton}
-                            onClick={() => onDelete(post.id)}
-                            title={post.isLocal ? "Delete post" : "Hide post"}
+                            onClick={handleDelete}
+                            title="Delete post"
+                            type="button"
                         >
-                            <Trash2 className={styles.deleteIcon} />
+                            <Trash2 className={styles.deleteIcon}/>
                         </button>
                     )}
                 </div>
             </div>
             <div className={commonStyles.cardContentCompact}>
-                <p className={styles.postContent}>{post.content}</p>
+                <p className={styles.postContent}>{content}</p>
                 <div className={styles.postActions}>
                     <button
-                        onClick={() => onLike(post.id)}
-                        className={`${styles.actionButton} ${post.isLiked ? styles.liked : ""}`}>
-                        <Heart className={`${styles.actionIcon} ${post.isLiked ? styles.heartFilled : ""}`} />
-                        <span>{post.likes}</span>
+                        onClick={handleLike}
+                        className={`${styles.actionButton} ${liked_by_user ? styles.liked : ""}`}>
+                        <Heart className={`${styles.actionIcon} ${liked_by_user ? styles.heartFilled : ""}`}/>
+                        <span>{Number.isFinite(likes) ? likes : 0}</span>
                     </button>
-                    <Link 
-                        to={`/comments/${post.id}`} 
+                    <Link
+                        to={`/comments/${id}`}
                         className={styles.actionButton}
                     >
-                        <MessageCircle className={styles.actionIcon} />
-                        <span>{post.comments}</span>
+                        <MessageCircle className={styles.actionIcon}/>
+                        <span>0</span>
                     </Link>
                 </div>
             </div>

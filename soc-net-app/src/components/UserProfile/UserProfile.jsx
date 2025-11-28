@@ -1,22 +1,13 @@
-import React, {useContext} from "react";
-import styles from "./UserProfile.module.css";
-import commonStyles from "../../App.module.css";
-import {User, LogOut} from "lucide-react"
-import {AuthContext} from "../../context/AuthContext";
+import {User, LogOut} from "lucide-react";
+import {useAuth} from '../../context/AuthContext';
+import styles from './UserProfile.module.css';
+import commonStyles from '../../App.module.css';
 
-const UserProfile = ({postsCount}) => {
-
-    const { setIsAuth, username, setUsername} = useContext(AuthContext);
-
-    const logout = () => {
-        setIsAuth(false);
-        localStorage.removeItem("auth");
-        localStorage.removeItem("username");
-        setUsername("");
-    }
+const UserProfile = ({user, postCount = 0, onLogout}) => {
+    const auth = useAuth();
 
     return (
-        <div className={styles.userInfoCard}>
+        <div className={commonStyles.profileCard}>
             <div className={commonStyles.cardContent}>
                 <div className={styles.userInfo}>
                     <div className={styles.avatar}>
@@ -25,10 +16,10 @@ const UserProfile = ({postsCount}) => {
                         </div>
                     </div>
                     <div className={styles.userDetails}>
-                        <h1 className={styles.userName}>{username}</h1>
+                        <h1 className={styles.userName}>{user.full_name}</h1>
                         <div className={styles.userStats}>
                             <div className={styles.stat}>
-                                <span className={styles.statNumber}>{postsCount}</span>
+                                <span className={styles.statNumber}>{postCount}</span>
                                 <span className={styles.statLabel}>Posts</span>
                             </div>
                             <div className={styles.stat}>
@@ -40,8 +31,8 @@ const UserProfile = ({postsCount}) => {
                                 <span className={styles.statLabel}>Following</span>
                             </div>
                         </div>
-                        <button className={styles.logoutButton} onClick={logout}>
-                            <LogOut className={styles.logoutIcon} />
+                        <button className={styles.logoutButton} onClick={onLogout}>
+                            <LogOut className={styles.logoutIcon}/>
                             Logout
                         </button>
                     </div>

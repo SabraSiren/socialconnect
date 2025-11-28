@@ -1,10 +1,10 @@
 .errorContainer {
-    color: #dc2626;
+    color: var(--error);
     padding: 1rem;
-    border: 1px solid #fecaca;
+    border: 1px solid var(--destructive);
     border-radius: 0.5rem;
     margin: 1rem 0;
-    background-color: #fef2f2;
+    background-color: var(--background);
     text-align: center;
 }
 
@@ -14,8 +14,8 @@
 }
 
 .retryButton {
-    background: #45882a;
-    color: white;
+    background: var(--primary);
+    color: var(--font-color-white);
     border: none;
     border-radius: 0.375rem;
     padding: 0.5rem 1rem;
@@ -26,5 +26,5 @@
 }
 
 .retryButton:hover {
-    background: #059669;
+    background: var(--primary-light);
 }

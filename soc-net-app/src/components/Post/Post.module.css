@@ -1,8 +1,8 @@
 .postCard {
     margin-bottom: 1rem;
     transition: box-shadow 0.2s ease;
-    background: white;
-    border: 1px solid #4d823b;
+    background: var(--background);
+    border: 1px solid var(--primary);
     border-radius: 0.5rem;
     box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
 }
@@ -15,14 +15,13 @@
     padding: 1.5rem 1.5rem 0.5rem 1.5rem;
 }
 
-/* Стили перенесены в App.module.css как cardContentCompact */
 
 .postTime {
     display: flex;
     justify-content: space-between;
     align-items: center;
     font-size: 0.875rem;
-    color: #6b7280;
+    color: var(--font-color-ligth);
 }
 
 .deleteButton {
@@ -30,14 +29,14 @@
     border: none;
     padding: 0.25rem;
     border-radius: 0.25rem;
-    color: #6b7280;
+    color: var(--font-color-ligth);
     cursor: pointer;
     transition: all 0.2s ease;
 }
 
 .deleteButton:hover {
-    background: #fef2f2;
-    color: #837f7f;
+    background: var(--background);
+    color: var(--destructive);
 }
 
 .deleteIcon {
@@ -48,21 +47,21 @@
 .postContent {
     margin-bottom: 1rem;
     line-height: 1.6;
-    color: #111827;
+    color: var(--font-color-dark);
 }
 
 .postActions {
     display: flex;
     gap: 1rem;
     padding-top: 0.75rem;
-    border-top: 1px solid #e5e7eb;
+    border-top: 1px solid var(--border);
 }
 
 .actionButton {
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    color: #6b7280;
+    color: var(--font-color-ligth);
     transition: color 0.2s ease;
     background: transparent;
     border: none;
@@ -73,21 +72,22 @@
 }
 
 .actionButton:hover {
-    color: #111827;
-    background: #f3f4f6;
+    color: var(--font-color-dark);
+    background: var(--background);
 }
 
 .actionButton.liked {
-    color: #4d823b;
+    color: var(--primary-light);
 }
 
 .actionButton.liked:hover {
-    color: #4d823b;
+    color: var(--primary-light);
 }
+
 .actionIcon {
     width: 1rem;
     height: 1rem;
-    color: #4d823b;
+    color: var(--primary);
 }
 
 .heartFilled {

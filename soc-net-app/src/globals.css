@@ -1,35 +1,24 @@
 :root {
-    --background: oklch(1 0 0); /* Pure white */
-    --foreground: oklch(0.35 0 0); /* Slate gray for text */
-    --card: oklch(0.97 0 0); /* Light gray for cards */
-    --card-foreground: oklch(0.35 0 0);
-    --popover: oklch(1 0 0);
-    --popover-foreground: oklch(0.35 0 0);
-    --primary: oklch(0.55 0.15 160); /* Emerald-600 primary */
-    --primary-foreground: oklch(1 0 0);
-    --secondary: oklch(0.62 0.17 160); /* Emerald-500 secondary */
-    --secondary-foreground: oklch(1 0 0);
-    --muted: oklch(0.97 0 0);
-    --muted-foreground: oklch(0.5 0 0);
-    --accent: oklch(0.62 0.17 160); /* Emerald accent */
-    --accent-foreground: oklch(1 0 0);
-    --destructive: oklch(0.577 0.245 27.325);
-    --destructive-foreground: oklch(1 0 0);
-    --border: oklch(0.85 0 0);
-    --input: oklch(1 0 0);
-    --ring: oklch(0.55 0.15 160 / 0.5);
-    --chart-1: oklch(0.55 0.15 160);
-    --chart-2: oklch(0.62 0.17 160);
-    --chart-3: oklch(0.35 0 0);
-    --chart-4: oklch(0.97 0 0);
-    --chart-5: oklch(0.577 0.245 27.325);
-    --radius: 0.5rem;
-    --sidebar: oklch(0.97 0 0);
-    --sidebar-foreground: oklch(0.35 0 0);
-    --sidebar-primary: oklch(0.55 0.15 160);
-    --sidebar-primary-foreground: oklch(1 0 0);
-    --sidebar-accent: oklch(0.62 0.17 160);
-    --sidebar-accent-foreground: oklch(1 0 0);
-    --sidebar-border: oklch(0.85 0 0);
-    --sidebar-ring: oklch(0.55 0.15 160 / 0.5);
+    /* Базовые цвета */
+    --background: oklch(1 0 0); /* Белый фон */
+    --border: oklch(0.86 0.01 260); /* Серая рамка */
+
+    /* Текст */
+    --font-color-dark: oklch(0.2 0.1 200); /* Основной черный текст */
+    --font-color-ligth: oklch(0.52 0.02 260); /* Второстепенный серый текст */
+    --font-color-placeholder: oklch(0.68 0.02 260); /* Текст плейсхолдера */
+    --font-color-white: oklch(1 0 0); /* Белый текст */
+
+    /* Primary - основной цвет зеленый */
+    --primary: oklch(0.57 0.13 130); /* Основной зеленый */
+    --primary-light: oklch(0.65 0.15 130); /* Светлее */
+    --primary-dark: oklch(0.40 0.12 130); /* Темнее */
+
+    /* Аватар */
+    --avatar-empty-bg: oklch(0.9 0.01 145); /* Бледно-зеленый для аватара */
+    --avatar-empty-icon: oklch(0.5 0 0); /* Иконка аватара*/
+
+    /* Ошибки и опасные операции */
+    --destructive: oklch(0.525 0.054 19.035); /* Приглушенный красный для иконок */
+    --error: oklch(0.57 0.22 25); /* Для ошибок */
 }

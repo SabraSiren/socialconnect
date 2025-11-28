@@ -1,33 +1,69 @@
-const API_URL = "https://jsonplaceholder.typicode.com";
+import API from './api';
+import {normalizePost, normalizePostsArray} from './normalizePost'
 
-export async function fetchPosts() {
-    const response = await fetch(`${API_URL}/posts`);
-    if (!response.ok) {
-        throw new Error("Error loading posts: " + response.status);
-    }
-    return response.json();
-}
-
-
-export async function fetchPostCommentsById(id) {
-    const response = await fetch(`${API_URL}/posts/${id}/comments`);
-    if (!response.ok) {
-        throw new Error("Error loading comments: " + response.status);
-    }
-    return response.json();
-}
-
-
-// Получить количество комментариев для поста
-export async function fetchCommentsCountByPostId(postId) {
-    try {
-        const response = await fetch(`${API_URL}/posts/${postId}/comments`);
-        if (!response.ok) {
-            return 0;
+const PostService = () => {
+    async function getPosts() {
+        try {
+            const res = await API.get('/articles');
+            const postList = res?.data?.articles ?? [];
+            const posts = normalizePostsArray(postList);
+            return {posts}
+        } catch (err) {
+            const message = err?.response?.data?.message || err.message || 'Error loading posts';
+            throw new Error(message);
         }
-        const comments = await response.json();
-        return comments.length;
-    } catch (error) {
-        return 0;
     }
-}
+
+    async function getPost(postId) {
+        try {
+            const res = await API.get(`/articles/${postId}`);
+            return normalizePost(res?.data ?? {});
+        } catch (err) {
+            const message = err?.response?.data?.message || err.message || 'Error loading post';
+            throw new Error(message);
+        }
+    }
+
+    async function createPost(payload) {
+        try {
+            const res = await API.post('/articles', payload);
+            return normalizePost(res?.data ?? {});
+        } catch (err) {
+            const message = err?.response?.data?.message || err.message || 'Error creating post';
+            throw new Error(message);
+        }
+    }
+
+    async function deletePost(postId) {
+        try {
+            const res = await API.delete(`/articles/${postId}`);
+            return res?.data ?? null;
+        } catch (err) {
+            const message = err?.response?.data?.message || err.message || 'Error delete post';
+            throw new Error(message);
+        }
+    }
+
+    async function likePost(postId) {
+        try {
+            const res = await API.patch(`/articles/${postId}/like`)
+            if (res?.data) {
+                return normalizePost(res.data);
+            }
+            return null;
+        } catch (err) {
+            const message = err?.response?.data?.message || err.message || 'Error liking post';
+            throw new Error(message);
+        }
+    }
+
+    return {
+        getPosts,
+        getPost,
+        createPost,
+        deletePost,
+        likePost,
+    }
+};
+
+export default PostService();

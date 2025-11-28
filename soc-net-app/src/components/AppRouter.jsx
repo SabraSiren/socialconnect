@@ -1,33 +1,33 @@
-import React, {useContext} from "react";
+import React from "react";
 import {Navigate, Route, Routes} from "react-router-dom";
-import {AuthContext} from "../context/AuthContext";
+import {useAuth} from "../context/AuthContext";
 import ProfilePage from "./ProfilePage/ProfilePage";
 import LoginPage from "./LoginPage/LoginPage";
 import Comments from "./Comments/Comments";
 
 const AppRouter = () => {
-    const {isAuth} = useContext(AuthContext);
+    const {isAuth} = useAuth();
 
     return (
         <Routes>
-            <Route path="/" element={<Navigate to="/login" replace />} />
+            <Route path="/" element={<Navigate to="/login" replace/>}/>
 
             <Route
                 path="/profile"
-                element={isAuth ? <ProfilePage /> : <Navigate to="/login" replace />}
+                element={isAuth ? <ProfilePage/> : <Navigate to="/login" replace/>}
             />
 
             <Route
                 path="/comments/:postId"
-                element={isAuth ? <Comments /> : <Navigate to="/login" replace />}
+                element={isAuth ? <Comments/> : <Navigate to="/login" replace/>}
             />
 
             <Route
                 path="/login"
-                element={isAuth ? <Navigate to="/profile" replace /> : <LoginPage />}
+                element={isAuth ? <Navigate to="/profile" replace/> : <LoginPage/>}
             />
 
-            <Route path="*" element={<Navigate to="/" replace />} />
+            <Route path="*" element={<Navigate to="/" replace/>}/>
         </Routes>
     )
 };
