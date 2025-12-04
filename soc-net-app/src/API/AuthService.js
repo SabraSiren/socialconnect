@@ -4,7 +4,6 @@ const ACCESS_KEY = 'accessToken';
 const REFRESH_KEY = 'refreshToken';
 const USER_KEY = 'authUser';
 
-
 const AuthService = (() => {
     const getAccessToken = () => localStorage.getItem(ACCESS_KEY);
     const getRefreshToken = () => localStorage.getItem(REFRESH_KEY);
@@ -21,18 +20,18 @@ const AuthService = (() => {
     };
 
     // Рефреш механика.
-    let isRefreshing = false;
-    let failedQueue = []; // { resolve, reject }
+    let isRefreshing = false; // флаг: идет ли сейчас обновление токена.
+    let failedQueue = []; // { resolve, reject }, очередь запросов, которые ждут обновления токена.
 
     const processQueue = (error, token = null) => {
         failedQueue.forEach((p) => {
-            if (error) p.reject(error);
-            else p.resolve(token);
+            if (error) p.reject(error); // если ошибка - отклоняем все промисы.
+            else p.resolve(token); // если успех - разрешаем все промисы.
         });
-        failedQueue = [];
+        failedQueue = [];  // очищаем очередь.
     };
 
-// Функция, которая попытается обновить токен (вызывается один раз в рефреш-процессе)
+// Функция, которая попытается обновить токен. Отправляет refresh-токен на сервер, чтобы получить новую пару токенов.
     const refreshTokenRequest = async () => {
         const refreshToken = getRefreshToken();
         if (!refreshToken) throw new Error('No refresh token available');
@@ -47,8 +46,8 @@ const AuthService = (() => {
         if (interceptorId !== null) return;
 
         API.interceptors.response.use(
-            (response) => response,
-            async (error) => {
+            (response) => response, // если все ок - пропускаем ответ.
+            async (error) => { // если ошибка - обрабатываем.
                 const originalRequest = error.config;
 
                 // Проверка URL
@@ -58,15 +57,14 @@ const AuthService = (() => {
 
                 // если нет config или это не 401 — просто проброс
                 if (!originalRequest || !error.response || error.response.status !== 401 || isLoginOrRegister) {
+                    return Promise.reject(error); // не обрабатываем.
+                }                  // Если это запрос на логин/регистрацию и там 401 - значит просто неправильный пароль, а не истекший токен.
+
+                if (originalRequest._retry) { // избегаем бесконечных ретраев.
                     return Promise.reject(error);
                 }
 
-                // избегаем бесконечных ретраев
-                if (originalRequest._retry) {
-                    return Promise.reject(error);
-                }
-
-                // если уже идёт рефреш — ставим этот запрос в очередь и ждём
+                // если уже идёт рефреш — ставим этот запрос в очередь и ждём.
                 if (isRefreshing) {
                     return new Promise((resolve, reject) => {
                         failedQueue.push({resolve, reject});
@@ -85,17 +83,15 @@ const AuthService = (() => {
                 isRefreshing = true;
 
                 try {
-                    const data = await refreshTokenRequest();
-                    // ожидаем data.access_token и data.refresh_token
+                    const data = await refreshTokenRequest(); // получаем новые токены.
                     const {access_token: newAccess, refresh_token: newRefresh} = data ?? {};
-
                     if (!newAccess) return Promise.reject(new Error('No access_token in refresh response'));
 
-                    // сохраняем и ставим header
+                    // сохраняем новые токены и ставим header.
                     saveAccessToken(newAccess);
                     if (newRefresh) saveRefreshToken(newRefresh);
 
-                    processQueue(null, newAccess);
+                    processQueue(null, newAccess);  // разрешаем все ожидающие запросы.
                     isRefreshing = false;
 
                     // повторяем оригинальный запрос с новым токеном
@@ -103,7 +99,7 @@ const AuthService = (() => {
                     originalRequest.headers.Authorization = 'Bearer ' + newAccess;
                     return API(originalRequest);
                 } catch (err) {
-                    // рефреш не удался — очистим локально (логин требуется заново)
+                    // рефреш не удался — выходим из системы.
                     processQueue(err, null);
                     isRefreshing = false;
                     saveAccessToken(null);
@@ -127,12 +123,7 @@ const AuthService = (() => {
             if (refreshToken) saveRefreshToken(refreshToken);
             return data;
         } catch (err) {
-            if (err?.response?.status === 401) {
-                throw new Error('Incorrect login or password');
-            }
-            const message = err?.response?.data?.message || err?.response?.data?.error || err.message || 'Login error';
-            console.error("Детальная ошибка сервера при логине:", err?.response?.data);
-            throw new Error(message);
+            throw err;
         }
     }
 
@@ -147,28 +138,7 @@ const AuthService = (() => {
             if (refreshToken) saveRefreshToken(refreshToken);
             return data;
         } catch (err) {
-            let message = 'Register error';
-
-            if (err?.response?.status === 400) {
-                // Ошибка валидации - скорее всего username уже занят
-                const errorDetail = err?.response?.data?.detail;
-                if (errorDetail) {
-                    message = errorDetail;
-                } else if (err?.response?.data?.message) {
-                    message = err.response.data.message;
-                } else {
-                    message = 'Username already exists';
-                }
-            } else if (err?.response?.data?.message) {
-                message = err.response.data.message;
-            } else if (err?.response?.data?.error) {
-                message = err.response.data.error;
-            } else if (err?.message) {
-                message = err.message;
-            }
-
-            console.error("Детальная ошибка сервера при регистрации:", err?.response?.data);
-            throw new Error(message);
+            throw err;
         }
     }
 
@@ -182,7 +152,7 @@ const AuthService = (() => {
     async function getCurrentUser() {
         const accessToken = getAccessToken();
         if (!accessToken) {
-            // нет токена — не делаем сетевой запрос, читаем только из localStorage.
+            //  // если нет токена - берем из localStorage.
             const stored = localStorage.getItem(USER_KEY);
             return stored ? JSON.parse(stored) : null;
         }
@@ -195,7 +165,7 @@ const AuthService = (() => {
                 return me;
             }
         } catch (err) {
-            if (err?.response?.status !== 401) console.error('getCurrentUser error', err);
+            // пользователь не авторизован = не ошибка.
             return null;
         }
     }
@@ -206,8 +176,6 @@ const AuthService = (() => {
         register,
         logout,
         getCurrentUser,
-        _getAccessToken: getAccessToken,
-        _getRefreshToken: getRefreshToken,
     };
 })();
 

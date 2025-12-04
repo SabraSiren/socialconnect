@@ -3,9 +3,12 @@ import {Link} from "react-router-dom";
 import {Heart, MessageCircle, Trash2} from "lucide-react"
 import styles from "./Post.module.css"
 import commonStyles from "../../App.module.css"
+import {useDispatch} from 'react-redux'
+import {deletePost, likePost} from "../../store/slices/postsSlice";
 
+const Post = ({post = {}}) => {
+    const dispatch = useDispatch();
 
-const Post = ({post = {}, onLike, onDelete}) => {
     const {
         id = null,
         content = "",
@@ -16,15 +19,15 @@ const Post = ({post = {}, onLike, onDelete}) => {
 
     const handleDelete = (e) => {
         e?.stopPropagation?.();
-        if (typeof onDelete === "function" && id != null) {
-            onDelete(id);
+        if (id != null) {
+            dispatch(deletePost(id));
         }
     };
 
     const handleLike = (e) => {
         e?.stopPropagation?.();
-        if (typeof onLike === "function" && id != null) {
-            onLike(id);
+        if (id != null) {
+            dispatch(likePost(id));
         }
     };
 
@@ -40,7 +43,7 @@ const Post = ({post = {}, onLike, onDelete}) => {
                 <div className={styles.postTime}>
                     <span>{formattedTime}</span>
 
-                    {typeof onDelete === "function" && id != null && (
+                    {id != null && (
                         <button
                             className={styles.deleteButton}
                             onClick={handleDelete}

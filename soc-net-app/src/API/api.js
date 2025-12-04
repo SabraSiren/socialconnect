@@ -7,7 +7,6 @@ const api = axios.create({
 
 const ACCESS_KEY = 'accessToken';
 
-// Интерцептор. Добавляет авторизацию, если токен есть.
 api.interceptors.request.use((config) => {
         try {
             const token = localStorage.getItem(ACCESS_KEY);

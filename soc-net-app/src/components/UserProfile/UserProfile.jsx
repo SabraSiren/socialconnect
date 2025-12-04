@@ -1,10 +1,29 @@
+import React from "react";
+import {useNavigate} from "react-router-dom";
+import {useDispatch, useSelector} from "react-redux";
 import {User, LogOut} from "lucide-react";
-import {useAuth} from '../../context/AuthContext';
 import styles from './UserProfile.module.css';
 import commonStyles from '../../App.module.css';
+import {logout} from "../../store/slices/authSlice";
 
-const UserProfile = ({user, postCount = 0, onLogout}) => {
-    const auth = useAuth();
+
+const UserProfile = ({onLogout}) => {
+    const dispatch = useDispatch();
+    const navigate = useNavigate();
+
+    const {user} = useSelector(state => state.auth);
+    const postsCount = useSelector(state => state.posts.items.length);
+
+    const handleLogout = async () => {
+        try {
+            await dispatch(logout()).unwrap();
+            navigate('/login');
+        } catch (err) {
+            console.error('Ошибка при выходе:', err);
+        }
+    };
+
+    console.log('User:', user);
 
     return (
         <div className={commonStyles.profileCard}>
@@ -16,10 +35,10 @@ const UserProfile = ({user, postCount = 0, onLogout}) => {
                         </div>
                     </div>
                     <div className={styles.userDetails}>
-                        <h1 className={styles.userName}>{user.full_name}</h1>
+                        <h1 className={styles.userName}>{user?.full_name}</h1>
                         <div className={styles.userStats}>
                             <div className={styles.stat}>
-                                <span className={styles.statNumber}>{postCount}</span>
+                                <span className={styles.statNumber}>{postsCount}</span>
                                 <span className={styles.statLabel}>Posts</span>
                             </div>
                             <div className={styles.stat}>
@@ -31,7 +50,7 @@ const UserProfile = ({user, postCount = 0, onLogout}) => {
                                 <span className={styles.statLabel}>Following</span>
                             </div>
                         </div>
-                        <button className={styles.logoutButton} onClick={onLogout}>
+                        <button className={styles.logoutButton} onClick={handleLogout}>
                             <LogOut className={styles.logoutIcon}/>
                             Logout
                         </button>

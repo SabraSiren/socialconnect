@@ -1,87 +1,21 @@
-import React, {useCallback, useEffect, useState, useRef} from "react";
+import React, {useEffect} from "react";
 import Post from "../Post/Post";
 import styles from "./Posts.module.css";
-import PostService from "../../API/PostService";
+import {useSelector, useDispatch} from 'react-redux'
+import {getPosts} from '../../store/slices/postsSlice'
 
-const Posts = ({refreshKey, onPostDeleted, onPostUpdated, onCountChange}) => {
-    const [posts, setPosts] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
+const Posts = () => {
+    const dispatch = useDispatch()
+    const {items: posts, isLoading, error} = useSelector(state => state.posts)
+    const { isAuth } = useSelector(state => state.auth)
 
-    // Используем useRef для onCountChange, чтобы loadPosts не вызывала постоянных ререндеров
-    const onCountChangeRef = useRef(onCountChange);
     useEffect(() => {
-        onCountChangeRef.current = onCountChange;
-    }, [onCountChange]);
-
-
-    const loadPosts = useCallback(async () => {
-        setLoading(true);
-        setError(null);
-        try {
-            const res = await PostService.getPosts();
-            const list = Array.isArray(res?.posts) ? res.posts : [];
-            setPosts(list);
-            if (onCountChangeRef.current) onCountChangeRef.current(list.length);
-        } catch (err) {
-            setError(err?.response?.data?.message ||
-                err?.message || 'Error loading post');
-        } finally {
-            setLoading(false);
+        if (isAuth) {
+            dispatch(getPosts());
         }
-    }, []);
+    }, [dispatch, isAuth]);
 
-    useEffect(() => {
-        loadPosts();
-        // Ошибки уже обработаны в loadPosts
-    }, [loadPosts, refreshKey]);
-
-
-    const handleRetry = () => {
-        loadPosts();
-        // Ошибки уже обработаны в loadPosts
-    };
-
-
-    // Удаление поста — после успешного удаления перезагружаем список и уведомляем родителя
-    const handleDelete = useCallback(
-        async (id) => {
-            setError(null);
-            try {
-                await PostService.deletePost(id);
-                if (onPostDeleted) onPostDeleted(id);
-            } catch (err) {
-                setError(err?.response?.data?.message || 'Error deleting post');
-            }
-        },
-        [onPostDeleted]
-    );
-
-
-    const handleLike = useCallback(
-        async (id) => {
-            setError(null);
-            try {
-                const updated = await PostService.likePost(id);
-
-                if (updated && updated.id != null) {
-                    // если сервер вернул обновлённый объект — применяем изменения локально
-                    setPosts((prev) =>
-                        prev.map((p) => (p.id === updated.id ? {...p, ...updated} : p))
-                    );
-                    if (typeof onPostUpdated === "function") onPostUpdated(id);
-                } else {
-                    await loadPosts();
-                    if (typeof onPostUpdated === "function") onPostUpdated(id);
-                }
-            } catch (err) {
-                console.error("Ошибка при лайке:", err);
-                setError(err?.message || "Error liking post.");
-            }
-        },
-        [loadPosts, onPostUpdated]
-    );
-
+    const handleRetry = () => dispatch(getPosts());
 
     return (
         <div>
@@ -97,7 +31,7 @@ const Posts = ({refreshKey, onPostDeleted, onPostUpdated, onCountChange}) => {
                 </div>
             )}
 
-            {!loading && !error && posts.length === 0 && (
+            {!isLoading && !error && posts.length === 0 && (
                 <div className={styles.feed}>
                     <div className={styles.emptyState}>
                         <div className={styles.emptyContent}>
@@ -112,8 +46,6 @@ const Posts = ({refreshKey, onPostDeleted, onPostUpdated, onCountChange}) => {
                     <Post
                         key={post.id}
                         post={post}
-                        onLike={handleLike}
-                        onDelete={handleDelete}
                     />
                 ))}
             </div>

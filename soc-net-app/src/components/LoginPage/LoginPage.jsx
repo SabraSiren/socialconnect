@@ -1,23 +1,34 @@
 import styles from "./LoginPage.module.css";
 import commonStyles from "../../App.module.css";
-import {useState} from "react";
-import {useAuth} from "../../context/AuthContext";
+import {useEffect, useState} from "react";
 import {useNavigate} from "react-router-dom";
+import {login, register, clearError} from '../../store/slices/authSlice';
+import {useDispatch, useSelector} from "react-redux";
 
 const LoginPage = () => {
-    const {login, register, error, clearError} = useAuth();
+    const dispatch = useDispatch();
     const navigate = useNavigate();
+    const {
+        user,
+        isAuth,
+        error
+    } = useSelector((state) => state.auth);
+
+    // Локальное состояние UI.
     const [isButtonLoading, setIsButtonLoading] = useState(false);
-
-    // Режим отображения формы: вход (login) или регистрация (register).
-    const [isLoginMode, setIsLoginMode] = useState(true);
-
-    // Данные формы. Поля совпадают с ожидаемыми сервером.
+    const [isLoginMode, setIsLoginMode] = useState(true); // Режим отображения формы: вход (login) или регистрация (register)
     const [formData, setFormData] = useState({
         username: "",
         password: "",
         full_name: ""
     });
+
+    useEffect(() => {
+        if (isAuth && user) {
+            navigate('/profile');
+        }
+    }, [isAuth, user, navigate]);
+
 
     // Обработчик изменения полей формы. Синхронизирует локальное состояние с инпутами и очищает текст ошибки при вводе.
     const handleInputChange = (e) => {
@@ -26,9 +37,10 @@ const LoginPage = () => {
             ...prev,
             [name]: value
         }));
-
-        // Очищаем ошибки при изменении полей.
-        if (error) clearError();
+        // Очищаем ошибки из Redux при изменении полей.
+        if (error) {
+            dispatch(clearError());
+        }
     };
 
 
@@ -36,32 +48,31 @@ const LoginPage = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        // Формируем полезную нагрузку. Подготавливаем payload в соответствии с режимом.
+        // Формируем полезную нагрузку в соответствии с режимом.
         const credentials = isLoginMode
             ? {username: formData.username, password: formData.password}
             : {username: formData.username, password: formData.password, full_name: formData.full_name};
 
         console.log(`Отправляем ${isLoginMode ? 'вход' : 'регистрацию'}:`, credentials);
+        // Устанавливаем локальное состояние загрузки.
         setIsButtonLoading(true);
         // Выполняем запрос: вход или регистрация.
         try {
-            const result = isLoginMode
-                ? await login(credentials)
-                : await register(credentials);
-
-            // AuthContext возвращает { success: true } при успешной операции.
-            if (result && result.success) {
-                console.log('Авторизация/регистрация успешна, выполняем переход...');
-                navigate('/profile');
+            if (isLoginMode) {
+                // dispatch возвращает Promise, unwrap() извлекает результат/ошибку.
+                const result = await dispatch(login(credentials)).unwrap();
+                console.log('Вход успешен:', result);
+                // Редирект выполнится в useEffect выше.
             } else {
-                // При неуспехе ошибка уже установлена в контексте и отображается в UI.
-                console.warn('Операция неуспешна', result);
+                const result = await dispatch(register(credentials)).unwrap();
+                console.log('Регистрация успешна:', result);
+                // Редирект выполнится в useEffect выше.
             }
         } catch (err) {
-            // AuthContext уже возвращает объект с ошибкой; но на всякий случай логируем.
-            console.error('Ошибка при отправке формы:', err);
+            console.error(`Ошибка ${isLoginMode ? 'входа' : 'регистрации'}:`, err);
+            // Ошибка уже сохранена в состоянии через rejectWithValue.
         } finally {
-            // Сбрасываем локальный лоадер в любом случае.
+            // Сбрасываем состояние кнопки в любом случае.
             setIsButtonLoading(false);
         }
     };
@@ -75,7 +86,7 @@ const LoginPage = () => {
             password: "",
             full_name: ""
         });
-        clearError();
+        dispatch(clearError());
     };
 
 

@@ -1,9 +1,11 @@
 import React, {useState} from "react";
 import styles from "./PostForm.module.css";
 import commonStyles from "../../App.module.css";
-import PostService from "../../API/PostService";
+import {useDispatch} from "react-redux";
+import {createPost} from "../../store/slices/postsSlice";
 
-const PostForm = ({onCreate}) => {
+const PostForm = () => {
+    const dispatch = useDispatch();
     const [content, setContent] = useState("");
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
@@ -17,21 +19,19 @@ const PostForm = ({onCreate}) => {
         }
         setLoading(true);
         setError(null);
-
         try {
-            console.debug('Posting:', text);
-            await PostService.createPost({content: text});
-            console.debug('Post created', content);
+            const payload = {
+                content: text,
+            };
+
+            await dispatch(createPost(payload)).unwrap();
             setContent("");
-            // уведомим родителя (ProfilePage) — он увеличит refreshKey и Posts рефетчит
-            if (onCreate) onCreate();
         } catch (err) {
-            setError(err?.response?.data?.message ||
-                err?.message || 'Error creating post');
+            setError(err || 'Error creating post');
         } finally {
             setLoading(false);
         }
-    }
+    };
 
 
     return (

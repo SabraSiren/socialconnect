@@ -1,35 +1,32 @@
 import React from "react";
 import {Navigate, Route, Routes} from "react-router-dom";
-import {useAuth} from "../context/AuthContext";
 import ProfilePage from "./ProfilePage/ProfilePage";
 import LoginPage from "./LoginPage/LoginPage";
 import Comments from "./Comments/Comments";
+import ProtectedRoute from "../components/ProtectedRoute";
 
 const AppRouter = () => {
-    const {isAuth} = useAuth();
 
     return (
         <Routes>
+            {/* Публичные маршруты */}
             <Route path="/" element={<Navigate to="/login" replace/>}/>
-
-            <Route
-                path="/profile"
-                element={isAuth ? <ProfilePage/> : <Navigate to="/login" replace/>}
-            />
-
-            <Route
-                path="/comments/:postId"
-                element={isAuth ? <Comments/> : <Navigate to="/login" replace/>}
-            />
-
-            <Route
-                path="/login"
-                element={isAuth ? <Navigate to="/profile" replace/> : <LoginPage/>}
-            />
-
+            <Route path="/login" element={<LoginPage />} />
             <Route path="*" element={<Navigate to="/" replace/>}/>
+
+            {/* Защищенные маршруты */}
+            <Route path="/profile" element={
+                <ProtectedRoute>
+                    <ProfilePage/>
+                </ProtectedRoute>}
+            />
+            <Route path="/comments/:postId" element={
+                <ProtectedRoute>
+                    <Comments/>
+                </ProtectedRoute>}
+            />
         </Routes>
     )
-};
+}
 
 export default AppRouter;
