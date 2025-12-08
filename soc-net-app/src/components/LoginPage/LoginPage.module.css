@@ -140,6 +140,18 @@
     font-size: 14px;
 }
 
+.successMessage {
+    background-color: var(--background);
+    border: 1px solid var(--border);
+    color: var(--primary);
+    padding: 12px;
+    border-radius: 6px;
+    margin-bottom: 16px;
+    text-align: center;
+    font-size: 14px;
+}
+
+
 @keyframes fadeInUp {
     from {
         opacity: 0;
