@@ -11,10 +11,12 @@ const LoginPage = () => {
     const {
         user,
         isAuth,
+        isLoading,
         error
     } = useSelector((state) => state.auth);
 
     // Локальное состояние UI.
+    const [successMessage, setSuccessMessage] = useState(null);
     const [isButtonLoading, setIsButtonLoading] = useState(false);
     const [isLoginMode, setIsLoginMode] = useState(true); // Режим отображения формы: вход (login) или регистрация (register)
     const [formData, setFormData] = useState({
@@ -24,10 +26,10 @@ const LoginPage = () => {
     });
 
     useEffect(() => {
-        if (isAuth && user) {
+        if (!isLoading && isAuth && user) {
             navigate('/profile');
         }
-    }, [isAuth, user, navigate]);
+    }, [isAuth, user, navigate, isLoading]);
 
 
     // Обработчик изменения полей формы. Синхронизирует локальное состояние с инпутами и очищает текст ошибки при вводе.
@@ -56,6 +58,7 @@ const LoginPage = () => {
         console.log(`Отправляем ${isLoginMode ? 'вход' : 'регистрацию'}:`, credentials);
         // Устанавливаем локальное состояние загрузки.
         setIsButtonLoading(true);
+        setSuccessMessage(null); // сбрасываем сообщение
         // Выполняем запрос: вход или регистрация.
         try {
             if (isLoginMode) {
@@ -65,11 +68,14 @@ const LoginPage = () => {
                 // Редирект выполнится в useEffect выше.
             } else {
                 const result = await dispatch(register(credentials)).unwrap();
+                setSuccessMessage(`Registration successful! Please log in to your account`);
                 console.log('Регистрация успешна:', result);
-                // Редирект выполнится в useEffect выше.
+                setIsLoginMode(true); // Автоматически переключаем на логин
+
             }
         } catch (err) {
             console.error(`Ошибка ${isLoginMode ? 'входа' : 'регистрации'}:`, err);
+            setSuccessMessage(null); // убираем success при ошибке
             // Ошибка уже сохранена в состоянии через rejectWithValue.
         } finally {
             // Сбрасываем состояние кнопки в любом случае.
@@ -86,6 +92,7 @@ const LoginPage = () => {
             password: "",
             full_name: ""
         });
+        setSuccessMessage(null); // очищаем сообщение
         dispatch(clearError());
     };
 
@@ -116,8 +123,14 @@ const LoginPage = () => {
                     </div>
 
                     <div className={commonStyles.cardContent}>
+                        {/* Сообщение об успешной регистрации */}
+                        {successMessage && (
+                            <div className={styles.successMessage}>
+                                 {successMessage}
+                            </div>
+                        )}
                         {/* Блок отображения текстовой ошибки */}
-                        {error && (
+                        {error && !successMessage && (
                             <div className={styles.errorMessage}>
                                 {error}
                             </div>

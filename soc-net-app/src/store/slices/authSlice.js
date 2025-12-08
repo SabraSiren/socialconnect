@@ -2,22 +2,16 @@ import {createSlice, createAsyncThunk} from '@reduxjs/toolkit'
 import AuthService from '../../API/AuthService'
 import { getFriendlyErrorMessage } from '../../utils/errorHandler'
 
-// Замена  аусконтексту.
 
 // Асинхронные экшены
 export const checkAuth = createAsyncThunk(
     'auth/checkAuth',
     async (_, { rejectWithValue }) => {
         try {
-            const user = await AuthService.getCurrentUser()
-            if (user) {
-                return user // Пользователь авторизован.
-            } else {
-                return rejectWithValue(null) // Пользователь не авторизован - без сообщения об ошибке.
-            }
+            return await AuthService.getCurrentUser() // тПользователь авторизован.
         } catch (error) {
             // Любая ошибка при проверке = не авторизован, но без дружелюбного сообщения.
-            return rejectWithValue(null)
+            return null
         }
     }
 )
@@ -27,7 +21,8 @@ export const login = createAsyncThunk(
     async (credentials, { rejectWithValue }) => {
         try {
             const data = await AuthService.login(credentials)
-            return  data?.user || await AuthService.getCurrentUser()
+            const user = await AuthService.getCurrentUser()
+            return user || data?.user || null
         } catch (error) {
             return rejectWithValue(getFriendlyErrorMessage(error))
         }
@@ -38,9 +33,23 @@ export const register = createAsyncThunk(
     'auth/register',
     async (userData, { rejectWithValue }) => {
         try {
-            const res = await AuthService.register(userData)
-            return  res?.user || await AuthService.getCurrentUser()
+            await AuthService.register(userData)
+            return userData.username; // возвращаем только имя для сообщения
         } catch (error) {
+            return rejectWithValue(getFriendlyErrorMessage(error))
+        }
+    }
+)
+
+export const logout = createAsyncThunk(
+    'auth/logout',
+    async (_, { rejectWithValue }) => {
+        try {
+            await AuthService.logout() // ← вызывает API /auth/logout
+            return null // успешный выход
+        } catch (error) {
+            // Даже если ошибка API - все равно очищаем локально
+            console.error('Logout API error:', error)
             return rejectWithValue(getFriendlyErrorMessage(error))
         }
     }
@@ -55,13 +64,6 @@ const authSlice = createSlice({
         error: null
     },
     reducers: {
-        logout: (state) => {
-            AuthService.logout()
-            state.user = null
-            state.isAuth = false
-            state.error = null
-            state.isLoading = false
-        },
         clearError: (state) => {
             state.error = null
         }
@@ -75,7 +77,7 @@ const authSlice = createSlice({
             })
             .addCase(checkAuth.fulfilled, (state, action) => {
                 state.isLoading = false
-                state.isAuth = true
+                state.isAuth = !!action.payload
                 state.user = action.payload
                 state.error = null
             })
@@ -92,7 +94,7 @@ const authSlice = createSlice({
             })
             .addCase(login.fulfilled, (state, action) => {
                 state.isLoading = false
-                state.isAuth = true
+                state.isAuth = !!action.payload
                 state.user = action.payload
             })
             .addCase(login.rejected, (state, action) => {
@@ -108,10 +110,28 @@ const authSlice = createSlice({
             })
             .addCase(register.fulfilled, (state, action) => {
                 state.isLoading = false
-                state.isAuth = true
-                state.user = action.payload
+                state.isAuth = false
+                state.user = null
+                state.error = null;
             })
             .addCase(register.rejected, (state, action) => {
+                state.isLoading = false
+                state.isAuth = false
+                state.user = null
+                state.error = action.payload
+            })
+            // logout
+            .addCase(logout.pending, (state) => {
+                state.isLoading = true
+                state.error = null
+            })
+            .addCase(logout.fulfilled, (state) => {
+                state.isLoading = false
+                state.isAuth = false
+                state.user = null
+                state.error = null
+            })
+            .addCase(logout.rejected, (state, action) => {
                 state.isLoading = false
                 state.isAuth = false
                 state.user = null
@@ -120,5 +140,5 @@ const authSlice = createSlice({
     }
 })
 
-export const { logout, clearError } = authSlice.actions
+export const {clearError } = authSlice.actions
 export default authSlice.reducer

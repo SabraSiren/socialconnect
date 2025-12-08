@@ -1,23 +1,7 @@
 import API from "./api";
 
-const ACCESS_KEY = 'accessToken';
-const REFRESH_KEY = 'refreshToken';
-const USER_KEY = 'authUser';
 
 const AuthService = (() => {
-    const getAccessToken = () => localStorage.getItem(ACCESS_KEY);
-    const getRefreshToken = () => localStorage.getItem(REFRESH_KEY);
-    const saveAccessToken = (t) => (t ? localStorage.setItem(ACCESS_KEY, t) : localStorage.removeItem(ACCESS_KEY));
-    const saveRefreshToken = (t) => (t ? localStorage.setItem(REFRESH_KEY, t) : localStorage.removeItem(REFRESH_KEY));
-    const saveUser = (u) => {
-        if (u == null) localStorage.removeItem(USER_KEY);
-        else {
-            try {
-                localStorage.setItem(USER_KEY, JSON.stringify(u));
-            } catch (e) {
-            }
-        }
-    };
 
     // Рефреш механика.
     let isRefreshing = false; // флаг: идет ли сейчас обновление токена.
@@ -33,10 +17,7 @@ const AuthService = (() => {
 
 // Функция, которая попытается обновить токен. Отправляет refresh-токен на сервер, чтобы получить новую пару токенов.
     const refreshTokenRequest = async () => {
-        const refreshToken = getRefreshToken();
-        if (!refreshToken) throw new Error('No refresh token available');
-
-        const res = await API.post('/auth/refresh', {refresh_token: refreshToken});
+        const res = await API.post('/auth/refresh');
         return res.data;
     };
 
@@ -69,10 +50,8 @@ const AuthService = (() => {
                     return new Promise((resolve, reject) => {
                         failedQueue.push({resolve, reject});
                     })
-                        .then((token) => {
+                        .then(() => {
                             originalRequest._retry = true;
-                            originalRequest.headers = originalRequest.headers || {};
-                            originalRequest.headers.Authorization = 'Bearer ' + token;
                             return API(originalRequest);
                         })
                         .catch((err) => Promise.reject(err));
@@ -83,28 +62,15 @@ const AuthService = (() => {
                 isRefreshing = true;
 
                 try {
-                    const data = await refreshTokenRequest(); // получаем новые токены.
-                    const {access_token: newAccess, refresh_token: newRefresh} = data ?? {};
-                    if (!newAccess) return Promise.reject(new Error('No access_token in refresh response'));
-
-                    // сохраняем новые токены и ставим header.
-                    saveAccessToken(newAccess);
-                    if (newRefresh) saveRefreshToken(newRefresh);
-
-                    processQueue(null, newAccess);  // разрешаем все ожидающие запросы.
+                    await refreshTokenRequest(); // получаем новые токены.
+                    processQueue(null);  // разрешаем все ожидающие запросы. без передачи токена.
                     isRefreshing = false;
-
-                    // повторяем оригинальный запрос с новым токеном
-                    originalRequest.headers = originalRequest.headers || {};
-                    originalRequest.headers.Authorization = 'Bearer ' + newAccess;
+                    // повторяем оригинальный запрос (куки уже обновились в браузере)
                     return API(originalRequest);
                 } catch (err) {
                     // рефреш не удался — выходим из системы.
                     processQueue(err, null);
                     isRefreshing = false;
-                    saveAccessToken(null);
-                    saveRefreshToken(null);
-                    saveUser(null);
                     return Promise.reject(err);
                 }
             }
@@ -116,12 +82,7 @@ const AuthService = (() => {
     async function login({username, password}) {
         try {
             const res = await API.post('/auth/login', {username, password});
-            const data = res?.data ?? {};
-            const {access_token: accessToken, refresh_token: refreshToken} = data ?? {};
-
-            if (accessToken) saveAccessToken(accessToken);
-            if (refreshToken) saveRefreshToken(refreshToken);
-            return data;
+            return  res?.data ?? {}; // убрали сохранение токенов. Сервер уже установил куки.
         } catch (err) {
             throw err;
         }
@@ -131,39 +92,27 @@ const AuthService = (() => {
     async function register({username, password, full_name}) {
         try {
             const res = await API.post('/auth/register', {username, password, full_name});
-            const data = res?.data ?? {};
-            // Если сервер вернул токены, сохраняем их
-            const {access_token: accessToken, refresh_token: refreshToken} = data ?? {};
-            if (accessToken) saveAccessToken(accessToken);
-            if (refreshToken) saveRefreshToken(refreshToken);
-            return data;
+            return  res?.data ?? {};
         } catch (err) {
             throw err;
         }
     }
 
-    function logout() {
-        // нет endpointа на сервере — локально чистим storage и headers.
-        saveAccessToken(null);
-        saveRefreshToken(null);
-        saveUser(null);
+    async function logout() {
+        try {
+            // Вызываем API логаута (сервер очистит куки)
+            await API.post('/auth/logout');
+        } catch (err) {
+            console.error('Logout error:', err);
+            // Все равно считаем, что пользователь вышел
+        }
     }
 
     async function getCurrentUser() {
-        const accessToken = getAccessToken();
-        if (!accessToken) {
-            //  // если нет токена - берем из localStorage.
-            const stored = localStorage.getItem(USER_KEY);
-            return stored ? JSON.parse(stored) : null;
-        }
         // есть токен — пробуем получить профиль с сервера.
         try {
             const res = await API.get('/auth/me');
-            const me = res?.data ?? null;
-            if (me) {
-                saveUser(me);
-                return me;
-            }
+            return  res?.data ?? null;
         } catch (err) {
             // пользователь не авторизован = не ошибка.
             return null;
