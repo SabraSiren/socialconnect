@@ -1,5 +1,6 @@
 import API from './api';
-import {normalizePost, normalizePostsArray} from './normalizePost'
+import {normalizePost, normalizePostsArray} from "../utils/normalizePost";
+
 
 const PostService = () => {
     async function getPosts() {
